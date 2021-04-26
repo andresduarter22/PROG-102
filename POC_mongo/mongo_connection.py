@@ -10,13 +10,19 @@ class MongoConnection:
         self.collection = collection_mongo
 
     def insert(self, document):
-        self.collection.insert_one(document)
+        db = client[self.db]
+        collection = db[self.collection]
+        collection.insert_one(document)
 
-    def select(self, number):
-        info = self.collection.find_one({'number': number})
+    def select(self,  select_by, value):
+        db = client[self.db]
+        collection = db[self.collection]
+        info = collection.find_one({select_by: value})
         pprint.pprint(info)
 
     def update(self, number, new_number):
+        db = client[self.db]
+        collection = db[self.collection]
         old = {
             'number': number
         }
@@ -24,22 +30,32 @@ class MongoConnection:
             'number': new_number
         }
         }
-        self.collection.update_one(old, new)
+        collection.update_one(old, new)
         print("New value \n")
-        self.select(new_number)
+        self.select('number', new_number)
 
     def delete(self, number):
-        self.collection.delete_one({'number': number})
+        db = client[self.db]
+        collection = db[self.collection]
+        collection.delete_one({'number': number})
 
     def select_all(self):
-        # for info in collection.find():
-        #   pprint.pprint(info)
+        res = []
+        db = client[self.db]
+        collection = db[self.collection]
+        for info in collection.find():
+            res.append(info)
+            pprint.pprint(info)
         print("It works!", self.db, self.collection)
-        return 'None'
+        return res
 
 
 if __name__ == '__main__':
     mongo = MongoConnection("mongodb", "test")
-    # mongo.insert({'number': 10})
-    mongo.select_all()
+    data = {'something': 'hello', 'number': 1}
+    mongo.insert(data)
+    mongo.select('something', 'hello')
+    # mongo.select_all()
+    mongo.delete(11)
+    # mongo.select_all()
     # mongo.update(89, 90)
